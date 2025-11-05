@@ -493,16 +493,24 @@ export const typeDefs = gql`
 
   type SimilarCandidates {
     target_candidate_id: ID!
+    targetCandidateId: ID!
+    targetClusterId: Int
     similar_candidates: [SimilarCandidate!]!
+    similarCandidates: [SimilarCandidate!]!
     search_criteria: SearchCriteria!
+    similarityCriteria: [String!]
     timestamp: String!
   }
 
   type SimilarCandidate {
     candidate_id: ID!
+    candidateId: ID!
     similarity_score: Float!
     shared_characteristics: [String!]!
     cluster_id: Int
+    clusterId: Int
+    clusterConfidence: Float
+    distanceToCenter: Float
     distance_metrics: DistanceMetrics!
   }
 
@@ -734,10 +742,14 @@ export const typeDefs = gql`
   }
 
   input SimilarCandidatesInput {
-    candidate_id: ID!
+    candidate_id: ID
+    candidateId: ID
     similarity_threshold: Float
+    maxSimilar: Int
     max_results: Int
     clustering_method: String
+    algorithm: String
+    includeMetrics: Boolean
   }
 
   input ClusterProfileInput {

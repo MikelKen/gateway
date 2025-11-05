@@ -338,20 +338,15 @@ export const mlConfig = {
     FIND_SIMILAR_CANDIDATES: `
       query FindSimilarCandidates($input: SimilarCandidatesInput!) {
         findSimilarCandidates(input: $input) {
-          target_candidate_id
-          similar_candidates {
-            candidate_id
-            similarity_score
-            shared_characteristics
-            cluster_id
-            distance_metrics
+          targetCandidateId
+          targetClusterId
+          similarityCriteria
+          similarCandidates {
+            candidateId
+            clusterId
+            clusterConfidence
+            distanceToCenter
           }
-          search_criteria {
-            similarity_threshold
-            max_results
-            clustering_method
-          }
-          timestamp
         }
       }
     `,
