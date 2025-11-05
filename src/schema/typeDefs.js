@@ -391,7 +391,9 @@ export const typeDefs = gql`
     recommendation: String!
     summary: String!
     strengths: [String!]!
+    weaknesses: [String!]
     suggestions: [String!]!
+    detailedAnalysis: String
   }
 
   type PredictionExplanation {

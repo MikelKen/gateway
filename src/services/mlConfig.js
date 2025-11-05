@@ -207,7 +207,9 @@ export const mlConfig = {
           recommendation
           summary
           strengths
+          weaknesses
           suggestions
+          detailedAnalysis
         }
       }
     `,
