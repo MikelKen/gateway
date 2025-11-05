@@ -1,19 +1,21 @@
 import axios from "axios";
 import { config } from "./config.js";
 import { erpClient } from "./erpClient.js";
+import { mlClient } from "./mlClient.js";
 
 class MicroserviceClient {
   constructor() {
     this.clients = {};
     this.erpClient = erpClient; // Cliente especializado para ERP
+    this.mlClient = mlClient; // Cliente especializado para ML
     this.initializeClients();
   }
 
   initializeClients() {
-    // Crear instancias de axios para cada microservicio (excepto ERP que tiene su propio cliente)
+    // Crear instancias de axios para cada microservicio (excepto ERP y ML que tienen clientes especializados)
     Object.entries(config.services).forEach(([key, service]) => {
-      if (key !== "erp") {
-        // Skip ERP ya que tiene su cliente especializado
+      if (key !== "erp" && key !== "ml") {
+        // Skip ERP y ML ya que tienen clientes especializados
         this.clients[key] = axios.create({
           baseURL: service.url,
           timeout: config.timeouts.default,
@@ -293,26 +295,174 @@ class MicroserviceClient {
     }
   }
 
+  // === MÉTODOS DIRECTOS PARA ML ===
+
+  // Features ERP
+  async getEmpresasFeatures(filter, limit) {
+    return await this.mlClient.getEmpresasFeatures(filter, limit);
+  }
+
+  async getOfertasFeatures(filter, limit) {
+    return await this.mlClient.getOfertasFeatures(filter, limit);
+  }
+
+  async getPostulantesFeatures(filter, limit) {
+    return await this.mlClient.getPostulantesFeatures(filter, limit);
+  }
+
+  // Candidatos MongoDB
+  async getCandidatesFeatures(query) {
+    return await this.mlClient.getCandidatesFeatures(query);
+  }
+
+  async getCandidateById(candidateId) {
+    return await this.mlClient.getCandidateById(candidateId);
+  }
+
+  async getCandidatesByOffer(offerId, limit) {
+    return await this.mlClient.getCandidatesByOffer(offerId, limit);
+  }
+
+  // Ofertas MongoDB
+  async getJobOffersFeatures(query) {
+    return await this.mlClient.getJobOffersFeatures(query);
+  }
+
+  async getJobOfferById(offerId) {
+    return await this.mlClient.getJobOfferById(offerId);
+  }
+
+  async getOffersByCompany(companyId, limit) {
+    return await this.mlClient.getOffersByCompany(companyId, limit);
+  }
+
+  // Empresas MongoDB
+  async getCompaniesFeatures(query) {
+    return await this.mlClient.getCompaniesFeatures(query);
+  }
+
+  async getCompanyByIdML(companyId) {
+    return await this.mlClient.getCompanyById(companyId);
+  }
+
+  // Predicciones ML
+  async predictCompatibility(input) {
+    return await this.mlClient.predictCompatibility(input);
+  }
+
+  async predictCustomCompatibility(input) {
+    return await this.mlClient.predictCustomCompatibility(input);
+  }
+
+  async predictBatchCompatibility(input) {
+    return await this.mlClient.predictBatchCompatibility(input);
+  }
+
+  async getTopCandidatesForOffer(input) {
+    return await this.mlClient.getTopCandidatesForOffer(input);
+  }
+
+  // Información del Modelo
+  async getModelInfo() {
+    return await this.mlClient.getModelInfo();
+  }
+
+  async getFeatureImportance(topN) {
+    return await this.mlClient.getFeatureImportance(topN);
+  }
+
+  async explainPrediction(candidateId, offerId) {
+    return await this.mlClient.explainPrediction(candidateId, offerId);
+  }
+
+  async getTrainingDataSummary() {
+    return await this.mlClient.getTrainingDataSummary();
+  }
+
+  async getModelPerformance() {
+    return await this.mlClient.getModelPerformance();
+  }
+
+  async isModelLoaded() {
+    return await this.mlClient.isModelLoaded();
+  }
+
+  async getModelStatus() {
+    return await this.mlClient.getModelStatus();
+  }
+
+  // Clustering
+  async analyzeCandidateClusters(input) {
+    return await this.mlClient.analyzeCandidateClusters(input);
+  }
+
+  async findSimilarCandidates(input) {
+    return await this.mlClient.findSimilarCandidates(input);
+  }
+
+  async getClusterProfileDetails(input) {
+    return await this.mlClient.getClusterProfileDetails(input);
+  }
+
+  // Utilidades ML
+  async getCollectionInfo(collectionName) {
+    return await this.mlClient.getCollectionInfo(collectionName);
+  }
+
+  async getMLHealthStatus() {
+    return await this.mlClient.getHealthStatus();
+  }
+
+  async getMLServiceInfo() {
+    return await this.mlClient.getServiceInfo();
+  }
+
+  async getMLSyncStatus() {
+    return await this.mlClient.getSyncStatus();
+  }
+
   // Método para verificar salud de los servicios
   async healthCheck() {
-    const results = {};
+    const results = {
+      timestamp: new Date().toISOString(),
+      services: {},
+    };
 
     // Health check para ERP usando cliente especializado
-    results.erp = await this.erpClient.healthCheck();
+    try {
+      results.services.erp = await this.erpClient.healthCheck();
+    } catch (error) {
+      results.services.erp = {
+        status: "error",
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    // Health check para ML usando cliente especializado
+    try {
+      results.services.ml = await this.mlClient.getHealthStatus();
+    } catch (error) {
+      results.services.ml = {
+        status: "error",
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
+    }
 
     // Health check para otros servicios
     for (const [key, service] of Object.entries(config.services)) {
-      if (key !== "erp") {
-        // Skip ERP ya procesado
+      if (key !== "erp" && key !== "ml") {
+        // Skip ERP y ML ya procesados
         try {
           const response = await this.clients[key].get("/health", { timeout: 2000 });
-          results[key] = {
+          results.services[key] = {
             status: "healthy",
             statusCode: response.status,
             service: service.name,
           };
         } catch (error) {
-          results[key] = {
+          results.services[key] = {
             status: "unhealthy",
             error: error.message,
             service: service.name,

@@ -3,6 +3,7 @@ import { productResolvers } from "./productResolvers.js";
 import { analyticsResolvers } from "./analyticsResolvers.js";
 import { aiResolvers } from "./aiResolvers.js";
 import { erpResolvers } from "./erpResolvers.js";
+import { mlResolvers } from "./mlResolvers.js";
 
 // Combinar todos los resolvers
 export const resolvers = {
@@ -12,6 +13,7 @@ export const resolvers = {
     ...analyticsResolvers.Query,
     ...aiResolvers.Query,
     ...erpResolvers.Query,
+    ...mlResolvers.Query,
   },
 
   Mutation: {
@@ -19,5 +21,6 @@ export const resolvers = {
     ...productResolvers.Mutation,
     ...aiResolvers.Mutation,
     ...erpResolvers.Mutation,
+    ...mlResolvers.Mutation,
   },
 };

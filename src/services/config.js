@@ -8,16 +8,18 @@ export const config = {
     erp: {
       url: process.env.SERVICE_ERP_URL || "http://localhost:8080",
       name: "service_erp",
-      graphqlEndpoint: process.env.ERP_GRAPHQL_ENDPOINT || "/graphql",
+      graphqlEndpoint: process.env.ERP_GRAPHQL_ENDPOINT || "/api/graphql",
       timeout: parseInt(process.env.ERP_TIMEOUT) || 10000,
+    },
+    ml: {
+      url: process.env.SERVICE_ML_URL || "http://localhost:8000",
+      name: "service_ml",
+      graphqlEndpoint: process.env.ML_GRAPHQL_ENDPOINT || "/graphql",
+      timeout: parseInt(process.env.ML_TIMEOUT) || 8000,
     },
     bi: {
       url: process.env.SERVICE_BI_URL || "http://localhost:8001",
       name: "service_bi",
-    },
-    ml: {
-      url: process.env.SERVICE_ML_URL || "http://localhost:3001",
-      name: "service_ml",
     },
   },
 

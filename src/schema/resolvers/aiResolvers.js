@@ -8,20 +8,17 @@ export const aiResolvers = {
       const servicesHealth = await microserviceClient.healthCheck();
 
       return {
-        gateway: "Gateway is running!",
+        timestamp: servicesHealth.timestamp || new Date().toISOString(),
         services: {
-          service_erp: {
-            status: servicesHealth.erp?.status || "unknown",
-            message: servicesHealth.erp?.error || "OK",
+          erp: servicesHealth.services?.erp || {
+            status: "unknown",
+            message: "Service not responding",
           },
-          service_bi: {
-            status: servicesHealth.bi?.status || "unknown",
-            message: servicesHealth.bi?.error || "OK",
+          ml: servicesHealth.services?.ml || {
+            status: "unknown",
+            message: "Service not responding",
           },
-          service_ml: {
-            status: servicesHealth.ml?.status || "unknown",
-            message: servicesHealth.ml?.error || "OK",
-          },
+          bi: servicesHealth.services?.bi || null,
         },
       };
     },
