@@ -370,9 +370,12 @@ export const typeDefs = gql`
   # Tipos de Predicciones ML
   type CompatibilityPrediction {
     candidate_id: ID
+    candidateId: ID
     offer_id: ID
     compatibility_score: Float
     prediction_confidence: Float
+    probability: Float
+    ranking: Int
     recommendation: String!
     explanation: PredictionExplanation
     timestamp: String
@@ -717,8 +720,10 @@ export const typeDefs = gql`
   }
 
   input TopCandidatesInput {
-    offer_id: ID!
+    offer_id: ID
+    offerId: ID
     limit: Int
+    topN: Int
     min_score: Float
   }
 

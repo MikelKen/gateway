@@ -245,15 +245,11 @@ export const mlConfig = {
     GET_TOP_CANDIDATES: `
       query GetTopCandidates($input: TopCandidatesInput!) {
         getTopCandidatesForOffer(input: $input) {
-          candidate_id
-          offer_id
-          compatibility_score
-          prediction_confidence
+          candidateId
+          offerId
+          probability
+          ranking
           recommendation
-          explanation {
-            key_factors
-            score_breakdown
-          }
         }
       }
     `,
