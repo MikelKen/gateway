@@ -202,6 +202,9 @@ export const mlConfig = {
     PREDICT_CUSTOM_COMPATIBILITY: `
       query PredictCustomCompatibility($input: CustomCompatibilityPredictionInput!) {
         predictCustomCompatibility(input: $input) {
+          probability
+          prediction
+          confidence
           probabilityPercentage
           compatibilityLevel
           recommendation
@@ -210,6 +213,10 @@ export const mlConfig = {
           weaknesses
           suggestions
           detailedAnalysis
+          decisionFactors
+          modelUsed
+          confidenceScore
+          predictionDate
         }
       }
     `,

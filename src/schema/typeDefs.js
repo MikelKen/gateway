@@ -386,6 +386,9 @@ export const typeDefs = gql`
 
   # Tipo específico para predictCustomCompatibility
   type CustomCompatibilityResult {
+    probability: Float
+    prediction: Boolean
+    confidence: String
     probabilityPercentage: String!
     compatibilityLevel: String!
     recommendation: String!
@@ -394,6 +397,10 @@ export const typeDefs = gql`
     weaknesses: [String!]
     suggestions: [String!]!
     detailedAnalysis: String
+    decisionFactors: [String!]
+    modelUsed: String
+    confidenceScore: Float
+    predictionDate: String
   }
 
   type PredictionExplanation {

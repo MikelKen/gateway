@@ -117,7 +117,23 @@ export const mlResolvers = {
 
     predictCustomCompatibility: async (_, { input }) => {
       try {
-        return await mlClient.predictCustomCompatibility(input);
+        const result = await mlClient.predictCustomCompatibility(input);
+
+        // Asegurar que todos los campos de array sean arrays válidos
+        if (!Array.isArray(result.decisionFactors)) {
+          result.decisionFactors = [];
+        }
+        if (!Array.isArray(result.strengths)) {
+          result.strengths = [];
+        }
+        if (!Array.isArray(result.weaknesses)) {
+          result.weaknesses = [];
+        }
+        if (!Array.isArray(result.suggestions)) {
+          result.suggestions = [];
+        }
+
+        return result;
       } catch (error) {
         console.error("Error in predictCustomCompatibility resolver:", error.message);
         throw new Error("Failed to predict custom compatibility");
