@@ -1,303 +1,296 @@
-import { mlClient } from "../../services/mlClient.js";
+import axios from "axios";
+
+const ML_URL = process.env.SERVICE_ML_URL || "http://localhost:8000/graphql";
+
+// Convierte la selección GraphQL a string respetando la estructura anidada
+function selectionSetToString(selections) {
+  if (!selections) return "";
+  
+  return selections
+    .map(selection => {
+      if (selection.selectionSet) {
+        return `${selection.name.value} {
+          ${selectionSetToString(selection.selectionSet.selections)}
+        }`;
+      } else {
+        return selection.name.value;
+      }
+    })
+    .join("\n          ");
+}
+
+// Función que reenvía queries a ML
+async function forwardToML(query, variables = {}) {
+  try {
+    console.log(`🤖 Forwarding to ML: ${query.substring(0, 100)}...`);
+    const response = await axios.post(ML_URL, {
+      query,
+      variables,
+    });
+
+    if (response.data.errors) {
+      console.error("❌ ML Error:", response.data.errors);
+      throw new Error(response.data.errors[0].message);
+    }
+
+    return response.data.data;
+  } catch (error) {
+    console.error("❌ Error forwarding to ML:", error.message);
+    throw error;
+  }
+}
 
 export const mlResolvers = {
   Query: {
-    // === RESOLVERS PARA FEATURES ERP ===
-    empresasFeatures: async (_, { filter, limit }) => {
-      try {
-        return await mlClient.getEmpresasFeatures(filter, limit);
-      } catch (error) {
-        console.error("Error in empresasFeatures resolver:", error.message);
-        throw new Error("Failed to fetch empresas features");
-      }
-    },
-
-    ofertasFeatures: async (_, { filter, limit }) => {
-      try {
-        return await mlClient.getOfertasFeatures(filter, limit);
-      } catch (error) {
-        console.error("Error in ofertasFeatures resolver:", error.message);
-        throw new Error("Failed to fetch ofertas features");
-      }
-    },
-
-    postulantesFeatures: async (_, { filter, limit }) => {
-      try {
-        return await mlClient.getPostulantesFeatures(filter, limit);
-      } catch (error) {
-        console.error("Error in postulantesFeatures resolver:", error.message);
-        throw new Error("Failed to fetch postulantes features");
-      }
-    },
-
-    // === RESOLVERS PARA CANDIDATOS (MONGODB) ===
-    candidatesFeatures: async (_, { query }) => {
-      try {
-        return await mlClient.getCandidatesFeatures(query);
-      } catch (error) {
-        console.error("Error in candidatesFeatures resolver:", error.message);
-        throw new Error("Failed to fetch candidates features");
-      }
-    },
-
-    candidateById: async (_, { candidateId }) => {
-      try {
-        return await mlClient.getCandidateById(candidateId);
-      } catch (error) {
-        console.error(`Error in candidateById resolver for id ${candidateId}:`, error.message);
-        throw new Error(`Failed to fetch candidate with id ${candidateId}`);
-      }
-    },
-
-    candidatesByOffer: async (_, { offerId, limit }) => {
-      try {
-        return await mlClient.getCandidatesByOffer(offerId, limit);
-      } catch (error) {
-        console.error(`Error in candidatesByOffer resolver for offer ${offerId}:`, error.message);
-        throw new Error(`Failed to fetch candidates for offer ${offerId}`);
-      }
-    },
-
-    // === RESOLVERS PARA OFERTAS (MONGODB) ===
-    jobOffersFeatures: async (_, { query }) => {
-      try {
-        return await mlClient.getJobOffersFeatures(query);
-      } catch (error) {
-        console.error("Error in jobOffersFeatures resolver:", error.message);
-        throw new Error("Failed to fetch job offers features");
-      }
-    },
-
-    jobOfferById: async (_, { offerId }) => {
-      try {
-        return await mlClient.getJobOfferById(offerId);
-      } catch (error) {
-        console.error(`Error in jobOfferById resolver for id ${offerId}:`, error.message);
-        throw new Error(`Failed to fetch job offer with id ${offerId}`);
-      }
-    },
-
-    offersByCompany: async (_, { companyId, limit }) => {
-      try {
-        return await mlClient.getOffersByCompany(companyId, limit);
-      } catch (error) {
-        console.error(`Error in offersByCompany resolver for company ${companyId}:`, error.message);
-        throw new Error(`Failed to fetch offers for company ${companyId}`);
-      }
-    },
-
-    // === RESOLVERS PARA EMPRESAS (MONGODB) ===
-    companiesFeatures: async (_, { query }) => {
-      try {
-        return await mlClient.getCompaniesFeatures(query);
-      } catch (error) {
-        console.error("Error in companiesFeatures resolver:", error.message);
-        throw new Error("Failed to fetch companies features");
-      }
-    },
-
-    companyById: async (_, { companyId }) => {
-      try {
-        return await mlClient.getCompanyById(companyId);
-      } catch (error) {
-        console.error(`Error in companyById resolver for id ${companyId}:`, error.message);
-        throw new Error(`Failed to fetch company with id ${companyId}`);
-      }
-    },
-
-    // === RESOLVERS PARA PREDICCIONES ML ===
-    predictCompatibility: async (_, { input }) => {
-      try {
-        return await mlClient.predictCompatibility(input);
-      } catch (error) {
-        console.error("Error in predictCompatibility resolver:", error.message);
-        throw new Error("Failed to predict compatibility");
-      }
-    },
-
-    predictCustomCompatibility: async (_, { input }) => {
-      try {
-        const result = await mlClient.predictCustomCompatibility(input);
-
-        // Asegurar que todos los campos de array sean arrays válidos
-        if (!Array.isArray(result.decisionFactors)) {
-          result.decisionFactors = [];
+    // === FEATURES ===
+    candidatesFeatures: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query candidatesFeatures($query: FeatureQueryInput) {
+        candidatesFeatures(query: $query) {
+          ${fields}
         }
-        if (!Array.isArray(result.strengths)) {
-          result.strengths = [];
+      }`;
+      const data = await forwardToML(query, args);
+      return data.candidatesFeatures;
+    },
+
+    jobOffersFeatures: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query jobOffersFeatures($query: FeatureQueryInput) {
+        jobOffersFeatures(query: $query) {
+          ${fields}
         }
-        if (!Array.isArray(result.weaknesses)) {
-          result.weaknesses = [];
+      }`;
+      const data = await forwardToML(query, args);
+      return data.jobOffersFeatures;
+    },
+
+    companiesFeatures: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query companiesFeatures($query: FeatureQueryInput) {
+        companiesFeatures(query: $query) {
+          ${fields}
         }
-        if (!Array.isArray(result.suggestions)) {
-          result.suggestions = [];
+      }`;
+      const data = await forwardToML(query, args);
+      return data.companiesFeatures;
+    },
+
+    candidateById: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query candidateById($candidateId: String!) {
+        candidateById(candidateId: $candidateId) {
+          ${fields}
         }
-
-        return result;
-      } catch (error) {
-        console.error("Error in predictCustomCompatibility resolver:", error.message);
-        throw new Error("Failed to predict custom compatibility");
-      }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.candidateById;
     },
 
-    predictBatchCompatibility: async (_, { input }) => {
-      try {
-        return await mlClient.predictBatchCompatibility(input);
-      } catch (error) {
-        console.error("Error in predictBatchCompatibility resolver:", error.message);
-        throw new Error("Failed to predict batch compatibility");
-      }
+    jobOfferById: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query jobOfferById($offerId: String!) {
+        jobOfferById(offerId: $offerId) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.jobOfferById;
     },
 
-    getTopCandidatesForOffer: async (_, { input }) => {
-      try {
-        return await mlClient.getTopCandidatesForOffer(input);
-      } catch (error) {
-        console.error("Error in getTopCandidatesForOffer resolver:", error.message);
-        throw new Error("Failed to get top candidates for offer");
-      }
+    companyById: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query companyById($companyId: String!) {
+        companyById(companyId: $companyId) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.companyById;
     },
 
-    // === RESOLVERS PARA INFORMACIÓN DEL MODELO ===
-    modelInfo: async () => {
-      try {
-        return await mlClient.getModelInfo();
-      } catch (error) {
-        console.error("Error in modelInfo resolver:", error.message);
-        throw new Error("Failed to get model info");
-      }
+    candidatesByOffer: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query candidatesByOffer($offerId: String!, $limit: Int) {
+        candidatesByOffer(offerId: $offerId, limit: $limit) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.candidatesByOffer;
     },
 
-    featureImportance: async (_, { topN }) => {
-      try {
-        return await mlClient.getFeatureImportance(topN);
-      } catch (error) {
-        console.error("Error in featureImportance resolver:", error.message);
-        throw new Error("Failed to get feature importance");
-      }
+    offersByCompany: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query offersByCompany($companyId: String!, $limit: Int) {
+        offersByCompany(companyId: $companyId, limit: $limit) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.offersByCompany;
     },
 
-    explainPrediction: async (_, { candidateId, offerId }) => {
-      try {
-        return await mlClient.explainPrediction(candidateId, offerId);
-      } catch (error) {
-        console.error("Error in explainPrediction resolver:", error.message);
-        throw new Error("Failed to explain prediction");
-      }
+    collectionInfo: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query collectionInfo($collectionName: String!) {
+        collectionInfo(collectionName: $collectionName) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.collectionInfo;
     },
 
-    trainingDataSummary: async () => {
-      try {
-        return await mlClient.getTrainingDataSummary();
-      } catch (error) {
-        console.error("Error in trainingDataSummary resolver:", error.message);
-        throw new Error("Failed to get training data summary");
-      }
+    // === PREDICCIONES ===
+    predictCompatibility: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query predictCompatibility($input: CompatibilityPredictionInput!) {
+        predictCompatibility(input: $input) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.predictCompatibility;
     },
 
-    modelPerformance: async () => {
-      try {
-        return await mlClient.getModelPerformance();
-      } catch (error) {
-        console.error("Error in modelPerformance resolver:", error.message);
-        throw new Error("Failed to get model performance");
-      }
+    predictCustomCompatibility: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query predictCustomCompatibility($input: CustomCompatibilityPredictionInput!) {
+        predictCustomCompatibility(input: $input) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.predictCustomCompatibility;
+    },
+
+    predictBatchCompatibility: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query predictBatchCompatibility($input: BatchCompatibilityInput!) {
+        predictBatchCompatibility(input: $input) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.predictBatchCompatibility;
+    },
+
+    getTopCandidatesForOffer: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query getTopCandidatesForOffer($input: TopCandidatesInput!) {
+        getTopCandidatesForOffer(input: $input) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.getTopCandidatesForOffer;
+    },
+
+    // === MODELO ===
+    modelInfo: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query modelInfo {
+        modelInfo {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.modelInfo;
+    },
+
+    featureImportance: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query featureImportance($topN: Int) {
+        featureImportance(topN: $topN) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.featureImportance;
+    },
+
+    explainPrediction: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query explainPrediction($candidateId: String!, $offerId: String!) {
+        explainPrediction(candidateId: $candidateId, offerId: $offerId) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.explainPrediction;
+    },
+
+    trainingDataSummary: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query trainingDataSummary {
+        trainingDataSummary {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.trainingDataSummary;
+    },
+
+    modelPerformance: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query modelPerformance {
+        modelPerformance {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.modelPerformance;
     },
 
     isModelLoaded: async () => {
-      try {
-        return await mlClient.isModelLoaded();
-      } catch (error) {
-        console.error("Error in isModelLoaded resolver:", error.message);
-        return false;
-      }
+      const query = `query isModelLoaded {
+        isModelLoaded
+      }`;
+      const data = await forwardToML(query);
+      return data.isModelLoaded;
     },
 
     modelStatus: async () => {
-      try {
-        const status = await mlClient.getModelStatus();
-        return JSON.stringify(status, null, 2);
-      } catch (error) {
-        console.error("Error in modelStatus resolver:", error.message);
-        return JSON.stringify({ status: "error", message: error.message }, null, 2);
-      }
+      const query = `query modelStatus {
+        modelStatus
+      }`;
+      const data = await forwardToML(query);
+      return data.modelStatus;
     },
 
-    // === RESOLVERS PARA CLUSTERING ===
-    analyzeCandidateClusters: async (_, { input }) => {
-      try {
-        return await mlClient.analyzeCandidateClusters(input);
-      } catch (error) {
-        console.error("Error in analyzeCandidateClusters resolver:", error.message);
-        throw new Error("Failed to analyze candidate clusters");
-      }
+    // === CLUSTERING ===
+    analyzeCandidateClusters: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query analyzeCandidateClusters($input: ClusteringQueryInput) {
+        analyzeCandidateClusters(input: $input) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.analyzeCandidateClusters;
     },
 
-    findSimilarCandidates: async (_, { input }) => {
-      try {
-        return await mlClient.findSimilarCandidates(input);
-      } catch (error) {
-        console.error("Error in findSimilarCandidates resolver:", error.message);
-        throw new Error("Failed to find similar candidates");
-      }
+    findSimilarCandidates: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query findSimilarCandidates($input: SimilarCandidatesInput!) {
+        findSimilarCandidates(input: $input) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.findSimilarCandidates;
     },
 
-    getClusterProfileDetails: async (_, { input }) => {
-      try {
-        return await mlClient.getClusterProfileDetails(input);
-      } catch (error) {
-        console.error("Error in getClusterProfileDetails resolver:", error.message);
-        throw new Error("Failed to get cluster profile details");
-      }
-    },
-
-    // === RESOLVERS PARA UTILIDADES ===
-    collectionInfo: async (_, { collectionName }) => {
-      try {
-        return await mlClient.getCollectionInfo(collectionName);
-      } catch (error) {
-        console.error(`Error in collectionInfo resolver for ${collectionName}:`, error.message);
-        throw new Error(`Failed to get collection info for ${collectionName}`);
-      }
-    },
-  },
-
-  Mutation: {
-    // === MUTATIONS PARA MODELO ML ===
-    retrainModel: async (_, { input }) => {
-      try {
-        return await mlClient.retrainModel(input);
-      } catch (error) {
-        console.error("Error in retrainModel mutation:", error.message);
-        throw new Error("Failed to retrain model");
-      }
-    },
-
-    updateModelConfig: async (_, { input }) => {
-      try {
-        return await mlClient.updateModelConfig(input);
-      } catch (error) {
-        console.error("Error in updateModelConfig mutation:", error.message);
-        throw new Error("Failed to update model config");
-      }
-    },
-
-    syncData: async (_, { input }) => {
-      try {
-        return await mlClient.syncData(input);
-      } catch (error) {
-        console.error("Error in syncData mutation:", error.message);
-        throw new Error("Failed to sync data");
-      }
-    },
-
-    clearCache: async (_, { cacheType }) => {
-      try {
-        return await mlClient.clearCache(cacheType);
-      } catch (error) {
-        console.error("Error in clearCache mutation:", error.message);
-        throw new Error("Failed to clear cache");
-      }
+    getClusterProfileDetails: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query getClusterProfileDetails($input: ClusterProfileInput!) {
+        getClusterProfileDetails(input: $input) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, args);
+      return data.getClusterProfileDetails;
     },
   },
 };
