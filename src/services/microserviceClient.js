@@ -1,13 +1,11 @@
 import axios from "axios";
 import { config } from "./config.js";
 import { erpClient } from "./erpClient.js";
-import { mlClient } from "./mlClient.js";
 
 class MicroserviceClient {
   constructor() {
     this.clients = {};
     this.erpClient = erpClient; // Cliente especializado para ERP
-    this.mlClient = mlClient; // Cliente especializado para ML
     this.initializeClients();
   }
 

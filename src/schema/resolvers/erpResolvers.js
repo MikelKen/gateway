@@ -184,7 +184,7 @@ export const erpResolvers = {
 
   Mutation: {
     // === EMPRESAS ===
-    crearEmpresa: async (_, args, context, info) => {
+    createEmpresa: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation crearEmpresa($input: EmpresaInput) {
         crearEmpresa(input: $input) {
@@ -195,7 +195,7 @@ export const erpResolvers = {
       return data.crearEmpresa;
     },
 
-    eliminarEmpresa: async (_, args, context, info) => {
+    deleteEmpresa: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation eliminarEmpresa($id: UUID) {
         eliminarEmpresa(id: $id) {
@@ -207,7 +207,7 @@ export const erpResolvers = {
     },
 
     // === OFERTAS DE TRABAJO ===
-    crearOfertaTrabajo: async (_, args, context, info) => {
+    createOfertaTrabajo: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation crearOfertaTrabajo($input: OfertaTrabajoInput) {
         crearOfertaTrabajo(input: $input) {
@@ -218,7 +218,7 @@ export const erpResolvers = {
       return data.crearOfertaTrabajo;
     },
 
-    eliminarOfertaTrabajo: async (_, args, context, info) => {
+    deleteOfertaTrabajo: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation eliminarOfertaTrabajo($id: UUID) {
         eliminarOfertaTrabajo(id: $id) {
@@ -230,7 +230,7 @@ export const erpResolvers = {
     },
 
     // === POSTULACIONES ===
-    crearPostulacion: async (_, args, context, info) => {
+    createPostulacion: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation crearPostulacion($input: PostulacionInput) {
         crearPostulacion(input: $input) {
@@ -241,7 +241,7 @@ export const erpResolvers = {
       return data.crearPostulacion;
     },
 
-    eliminarPostulacion: async (_, args, context, info) => {
+    deletePostulacion: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation eliminarPostulacion($id: UUID) {
         eliminarPostulacion(id: $id) {
@@ -253,7 +253,7 @@ export const erpResolvers = {
     },
 
     // === ENTREVISTAS ===
-    crearEntrevista: async (_, args, context, info) => {
+    createEntrevista: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation crearEntrevista($input: EntrevistaInput) {
         crearEntrevista(input: $input) {
@@ -264,7 +264,7 @@ export const erpResolvers = {
       return data.crearEntrevista;
     },
 
-    eliminarEntrevista: async (_, args, context, info) => {
+    deleteEntrevista: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation eliminarEntrevista($id: UUID) {
         eliminarEntrevista(id: $id) {
@@ -276,7 +276,7 @@ export const erpResolvers = {
     },
 
     // === EVALUACIONES ===
-    crearEvaluacion: async (_, args, context, info) => {
+    createEvaluacion: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation crearEvaluacion($input: EvaluacionInput) {
         crearEvaluacion(input: $input) {
@@ -287,7 +287,7 @@ export const erpResolvers = {
       return data.crearEvaluacion;
     },
 
-    eliminarEvaluacion: async (_, args, context, info) => {
+    deleteEvaluacion: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation eliminarEvaluacion($id: UUID) {
         eliminarEvaluacion(id: $id) {
@@ -299,7 +299,7 @@ export const erpResolvers = {
     },
 
     // === VISUALIZACIONES DE OFERTA ===
-    crearVisualizacionOferta: async (_, args, context, info) => {
+    createVisualizacionOferta: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation crearVisualizacionOferta($input: VisualizacionOfertaInput) {
         crearVisualizacionOferta(input: $input) {
@@ -310,7 +310,7 @@ export const erpResolvers = {
       return data.crearVisualizacionOferta;
     },
 
-    eliminarVisualizacionOferta: async (_, args, context, info) => {
+    deleteVisualizacionOferta: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
       const query = `mutation eliminarVisualizacionOferta($id: UUID) {
         eliminarVisualizacionOferta(id: $id) {

@@ -6,16 +6,15 @@ WORKDIR /usr/src/app
 # Copiar package files
 COPY package*.json ./
 
-# Instalar solo dependencias de producción
-RUN npm ci --only=production && npm cache clean --force
+# Instalar todas las dependencias
+RUN npm ci --only=production
 
 # ===== Runtime Stage =====
 FROM node:18-alpine
 
 # Etiquetas
 LABEL maintainer="SW2 Team"
-LABEL description="GraphQL Gateway for BI, ML, and ERP microservices (PRODUCTION)"
-LABEL version="1.0.0"
+LABEL description="GraphQL Gateway for BI, ML, and ERP microservices (DEV)"
 
 # Crear usuario no-root
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
@@ -38,7 +37,7 @@ USER nodejs
 EXPOSE 4000
 
 # Health check
-HEALTHCHECK --interval=60s --timeout=10s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:4000/graphql', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
 # Comando para ejecutar la aplicación

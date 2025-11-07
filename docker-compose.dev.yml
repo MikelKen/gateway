@@ -1,0 +1,16 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gateway-graphql-dev
+    network_mode: host
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/graphql"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
