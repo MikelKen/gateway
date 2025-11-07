@@ -96,6 +96,145 @@ export const typeDefs = gql`
     oferta: OfertaTrabajo!
   }
 
+  # ==========================================
+  # TIPOS BI (BUSINESS INTELLIGENCE)
+  # ==========================================
+
+  type EvaluacionKPI {
+    evaluacionId: String!
+    candidateName: String
+    entrevistador: String
+    interviewDate: String
+    calificacionTecnica: Float
+    calificacionActitud: Float
+    calificacionGeneral: Float
+    interpretation: String!
+    qualityLevel: String!
+  }
+
+  type EvaluacionStats {
+    evaluacionId: String!
+    candidateName: String
+    calificacionTecnica: Float
+    calificacionActitud: Float
+    calificacionGeneral: Float
+  }
+
+  type AllEvaluacionesSummary {
+    totalEvaluaciones: Int!
+    promedioCaliTecnica: Float!
+    promedioCaliActitud: Float!
+    promedioCaliGeneral: Float!
+    excelente: Int!
+    buena: Int!
+    aceptable: Int!
+    pobre: Int!
+    evaluacionStats: [EvaluacionKPI!]!
+  }
+
+  type EvaluacionesByInterviewStats {
+    entrevistaId: String!
+    candidateName: String!
+    entrevistador: String!
+    interviewDate: String!
+    totalEvaluaciones: Int!
+    promedioCaliTecnica: Float!
+    promedioCaliActitud: Float!
+    promedioCaliGeneral: Float!
+    evaluaciones: [EvaluacionKPI!]!
+  }
+
+  type EvaluacionesByCompanyStats {
+    empresaId: String!
+    empresaNombre: String!
+    totalEvaluaciones: Int!
+    promedioCaliTecnica: Float!
+    promedioCaliActitud: Float!
+    promedioCaliGeneral: Float!
+    excelente: Int!
+    buena: Int!
+    aceptable: Int!
+    pobre: Int!
+    evaluaciones: [EvaluacionKPI!]!
+  }
+
+  type EvaluacionesByInterviewerStats {
+    entrevistador: String!
+    totalEvaluaciones: Int!
+    promedioCaliTecnica: Float!
+    promedioCaliActitud: Float!
+    promedioCaliGeneral: Float!
+    excelente: Int!
+    buena: Int!
+    aceptable: Int!
+    pobre: Int!
+    evaluaciones: [EvaluacionKPI!]!
+  }
+
+  type ConversionRateKPI {
+    offerId: String!
+    offerTitle: String
+    totalViews: Int!
+    totalApplications: Int!
+    conversionRate: Float!
+    interpretation: String!
+  }
+
+  type OfferConversionStats {
+    offerId: String!
+    offerTitle: String!
+    views: Int!
+    applications: Int!
+    conversionPercentage: Float!
+  }
+
+  type AllOffersConversionSummary {
+    totalOffers: Int!
+    offerStats: [OfferConversionStats!]!
+    averageConversionRate: Float!
+  }
+
+  type CompanyConversionStats {
+    empresaId: String!
+    empresaNombre: String!
+    totalOffers: Int!
+    totalViews: Int!
+    totalApplications: Int!
+    averageConversionRate: Float!
+    offerStats: [OfferConversionStats!]!
+  }
+
+  type InterviewObjectivesKPI {
+    interviewId: String!
+    candidateName: String
+    interviewer: String
+    interviewDate: String
+    totalObjectives: Int!
+    coveredObjectives: Int!
+    objectiveCoveragePercentage: Float!
+    interpretation: String!
+  }
+
+  type AllInterviewsObjectivesSummary {
+    totalInterviews: Int!
+    averageCoverage: Float!
+    excellentCoverage: Int!
+    acceptableCoverage: Int!
+    poorCoverage: Int!
+    interviewStats: [InterviewObjectivesKPI!]!
+  }
+
+  type CompanyInterviewStats {
+    empresaId: String!
+    empresaNombre: String!
+    totalInterviews: Int!
+    averageCoverage: Float!
+    excellentCoverage: Int!
+    acceptableCoverage: Int!
+    poorCoverage: Int!
+    interviewStats: [InterviewObjectivesKPI!]!
+  }
+
   # Health Status types
   type HealthStatus {
     timestamp: String!
@@ -192,6 +331,18 @@ export const typeDefs = gql`
 
     # Queries ML - Utilidades
     collectionInfo(collectionName: String!): FeatureCollectionInfo
+
+    # Queries para service_bi (Go GraphQL) - BI reenvía las queries tal cual
+    evaluacionKPI(evaluacionId: String!): EvaluacionKPI
+    allEvaluacionesKPI: AllEvaluacionesSummary
+    evaluacionesByInterview(entrevistaId: String!): EvaluacionesByInterviewStats
+    evaluacionesByCompany(empresaId: String!): EvaluacionesByCompanyStats
+    evaluacionesByInterviewer(entrevistador: String!): EvaluacionesByInterviewerStats
+    jobConversionRate(offerId: String!): ConversionRateKPI
+    allJobsConversionRate: AllOffersConversionSummary
+    conversionRateByCompany(empresaId: String!): CompanyConversionStats
+    interviewObjectivesKPI(interviewId: String!): InterviewObjectivesKPI
+    allInterviewsObjectivesKPI: AllInterviewsObjectivesSummary
 
     # Queries para service_bi (FastAPI)
     analytics: [Analytics!]!

@@ -4,6 +4,7 @@ import { analyticsResolvers } from "./analyticsResolvers.js";
 import { aiResolvers } from "./aiResolvers.js";
 import { erpResolvers } from "./erpResolvers.js";
 import { mlResolvers } from "./mlResolvers.js";
+import { biResolvers } from "./biResolvers.js";
 
 // Combinar todos los resolvers
 export const resolvers = {
@@ -14,6 +15,7 @@ export const resolvers = {
     ...aiResolvers.Query,
     ...erpResolvers.Query,
     ...mlResolvers.Query,
+    ...biResolvers.Query,
   },
 
   Mutation: {
