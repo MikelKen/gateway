@@ -42,6 +42,9 @@ export const typeDefs = gql`
     nombre: String!
     correo: String!
     rubro: String!
+    createdAt: DateTime
+    updatedAt: DateTime
+    ofertas(limit: Int): [OfertaTrabajo!]
   }
 
   type OfertaTrabajo {
@@ -53,6 +56,10 @@ export const typeDefs = gql`
     requisitos: String
     fechaPublicacion: String
     empresa: Empresa!
+    createdAt: DateTime
+    updatedAt: DateTime
+    postulaciones(limit: Int): [Postulacion!]
+    visualizaciones(limit: Int): [VisualizacionOferta!]
   }
 
   type Postulacion {
@@ -67,7 +74,12 @@ export const typeDefs = gql`
     urlCv: String!
     fechaPostulacion: String!
     estado: String!
+    telefono: String!
+    email: String!
     oferta: OfertaTrabajo!
+    createdAt: DateTime
+    updatedAt: DateTime
+    entrevistas(limit: Int): [Entrevista!]
   }
 
   type Entrevista {
@@ -78,6 +90,9 @@ export const typeDefs = gql`
     objetivosCubiertos: String
     entrevistador: String
     postulacion: Postulacion!
+    createdAt: DateTime
+    updatedAt: DateTime
+    evaluaciones(limit: Int): [Evaluacion!]
   }
 
   type Evaluacion {
@@ -87,6 +102,8 @@ export const typeDefs = gql`
     calificacionGeneral: Float
     comentarios: String
     entrevista: Entrevista!
+    createdAt: DateTime
+    updatedAt: DateTime
   }
 
   type VisualizacionOferta {
@@ -94,6 +111,8 @@ export const typeDefs = gql`
     fechaVisualizacion: String!
     origen: String!
     oferta: OfertaTrabajo!
+    createdAt: DateTime
+    updatedAt: DateTime
   }
 
   # ==========================================
@@ -274,27 +293,27 @@ export const typeDefs = gql`
     user(id: ID!): User
 
     # Queries ERP - Empresas
-    empresas: [Empresa!]!
+    empresas(limit: Int): [Empresa!]!
     empresa(id: UUID!): Empresa
 
     # Queries ERP - Ofertas de Trabajo
-    ofertasTrabajo: [OfertaTrabajo!]!
+    ofertasTrabajo(limit: Int): [OfertaTrabajo!]!
     ofertaTrabajo(id: UUID!): OfertaTrabajo
 
     # Queries ERP - Postulaciones
-    postulaciones: [Postulacion!]!
+    postulaciones(limit: Int): [Postulacion!]!
     postulacion(id: UUID!): Postulacion
 
     # Queries ERP - Entrevistas
-    entrevistas: [Entrevista!]!
+    entrevistas(limit: Int): [Entrevista!]!
     entrevista(id: UUID!): Entrevista
 
     # Queries ERP - Evaluaciones
-    evaluaciones: [Evaluacion!]!
+    evaluaciones(limit: Int): [Evaluacion!]!
     evaluacion(id: UUID!): Evaluacion
 
     # Queries ERP - Visualizaciones de Ofertas
-    visualizacionesOferta: [VisualizacionOferta!]!
+    visualizacionesOferta(limit: Int): [VisualizacionOferta!]!
     visualizacionOferta(id: UUID!): VisualizacionOferta
 
     # Queries ML - Features ERP
@@ -375,6 +394,7 @@ export const typeDefs = gql`
 
     # Mutations ERP - Empresas
     createEmpresa(nombre: String!, correo: String!, rubro: String!): Empresa!
+    updateEmpresa(id: UUID!, nombre: String, correo: String, rubro: String): Empresa!
     deleteEmpresa(id: UUID!): String!
 
     # Mutations ERP - Ofertas de Trabajo
@@ -386,6 +406,15 @@ export const typeDefs = gql`
       requisitos: String
       fechaPublicacion: String
       empresaId: UUID!
+    ): OfertaTrabajo!
+    updateOfertaTrabajo(
+      id: UUID!
+      titulo: String
+      descripcion: String
+      salario: Float
+      ubicacion: String
+      requisitos: String
+      fechaPublicacion: String
     ): OfertaTrabajo!
     deleteOfertaTrabajo(id: UUID!): String!
 
@@ -401,7 +430,24 @@ export const typeDefs = gql`
       urlCv: String!
       fechaPostulacion: String!
       estado: String!
+      telefono: String!
+      email: String!
       ofertaId: UUID!
+    ): Postulacion!
+    updatePostulacion(
+      id: UUID!
+      nombre: String
+      aniosExperiencia: Int
+      nivelEducacion: String
+      habilidades: String
+      idiomas: String
+      certificaciones: String
+      puestoActual: String
+      urlCv: String
+      fechaPostulacion: String
+      estado: String
+      telefono: String
+      email: String
     ): Postulacion!
     deletePostulacion(id: UUID!): String!
 
@@ -414,6 +460,14 @@ export const typeDefs = gql`
       entrevistador: String
       postulacionId: UUID!
     ): Entrevista!
+    updateEntrevista(
+      id: UUID!
+      fecha: String
+      duracionMin: Int
+      objetivosTotales: String
+      objetivosCubiertos: String
+      entrevistador: String
+    ): Entrevista!
     deleteEntrevista(id: UUID!): String!
 
     # Mutations ERP - Evaluaciones
@@ -424,10 +478,18 @@ export const typeDefs = gql`
       comentarios: String
       entrevistaId: UUID!
     ): Evaluacion!
+    updateEvaluacion(
+      id: UUID!
+      calificacionTecnica: Float
+      calificacionActitud: Float
+      calificacionGeneral: Float
+      comentarios: String
+    ): Evaluacion!
     deleteEvaluacion(id: UUID!): String!
 
     # Mutations ERP - Visualizaciones de Ofertas
     createVisualizacionOferta(fechaVisualizacion: String!, origen: String!, ofertaId: UUID!): VisualizacionOferta!
+    updateVisualizacionOferta(id: UUID!, fechaVisualizacion: String, origen: String): VisualizacionOferta!
     deleteVisualizacionOferta(id: UUID!): String!
 
     # Mutations para productos (legacy)
