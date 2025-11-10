@@ -6,9 +6,9 @@ const ERP_GRAPHQL_ENDPOINT = process.env.ERP_GRAPHQL_ENDPOINT || "/api/graphql";
 // Convierte la selección GraphQL a string respetando la estructura anidada
 function selectionSetToString(selections) {
   if (!selections) return "";
-  
+
   return selections
-    .map(selection => {
+    .map((selection) => {
       if (selection.selectionSet) {
         return `${selection.name.value} {
           ${selectionSetToString(selection.selectionSet.selections)}
@@ -87,6 +87,17 @@ export const erpResolvers = {
       }`;
       const data = await forwardToERP(query, args);
       return data.obtenerOfertaTrabajoPorId;
+    },
+
+    obtenerOfertasPorEmpresa: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query obtenerOfertasPorEmpresa($empresaId: UUID!, $limit: Int) {
+        obtenerOfertasPorEmpresa(empresaId: $empresaId, limit: $limit) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToERP(query, args);
+      return data.obtenerOfertasPorEmpresa;
     },
 
     // === POSTULACIONES ===

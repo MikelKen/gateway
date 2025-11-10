@@ -96,6 +96,27 @@ export const erpConfig = {
         }
       }
     `,
+    GET_OFERTA_BY_COMPANY_ID: `
+      query ObtenerOfertasPorEmpresa($empresaId: UUID!, $limit: Int) {
+        obtenerOfertasPorEmpresa(empresaId: $empresaId, limit: $limit) {
+          id
+          titulo
+          descripcion
+          salario
+          ubicacion
+          requisitos
+          fechaPublicacion
+          createdAt
+          updatedAt
+          empresa {
+            id
+            nombre
+            correo
+            rubro
+          }
+        }
+      }
+    `,
 
     // Queries para Postulaciones
     GET_ALL_POSTULACIONES: `

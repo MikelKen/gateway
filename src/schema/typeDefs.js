@@ -115,6 +115,19 @@ export const typeDefs = gql`
     updatedAt: DateTime
   }
 
+  type obtenerOfertasPorEmpresa {
+    id: UUID!
+    titulo: String!
+    descripcion: String!
+    salario: Float
+    ubicacion: String
+    requisitos: String
+    fechaPublicacion: String
+    empresa: Empresa!
+    createdAt: DateTime
+    updatedAt: DateTime
+  }
+
   # ==========================================
   # TIPOS BI (BUSINESS INTELLIGENCE)
   # ==========================================
@@ -299,6 +312,7 @@ export const typeDefs = gql`
     # Queries ERP - Ofertas de Trabajo
     ofertasTrabajo(limit: Int): [OfertaTrabajo!]!
     ofertaTrabajo(id: UUID!): OfertaTrabajo
+    obtenerOfertasPorEmpresa(empresaId: UUID!, limit: Int): [OfertaTrabajo!]!
 
     # Queries ERP - Postulaciones
     postulaciones(limit: Int): [Postulacion!]!

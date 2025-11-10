@@ -136,6 +136,16 @@ class ERPClient {
     }
   }
 
+  async getAllOfertasByCompanyId(companyId, limit = 10) {
+    try {
+      const data = await this.executeQuery(erpConfig.queries.GET_OFERTA_BY_COMPANY_ID, { empresaId: companyId, limit });
+      return data.obtenerOfertasPorEmpresa || [];
+    } catch (error) {
+      console.error("Error fetching ofertas:", error.message);
+      return [];
+    }
+  }
+
   async getOfertaById(id) {
     try {
       const data = await this.executeQuery(erpConfig.queries.GET_OFERTA_BY_ID, { id });
