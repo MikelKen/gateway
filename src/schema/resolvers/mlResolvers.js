@@ -2,12 +2,54 @@ import axios from "axios";
 
 const ML_URL = process.env.SERVICE_ML_URL || "http://localhost:8000/graphql";
 
+// Convierte camelCase a snake_case
+function camelToSnake(str) {
+  return str.replace(/([A-Z])/g, "_$1").toLowerCase();
+}
+
+// Convierte snake_case a camelCase
+function snakeToCamel(str) {
+  return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+}
+
+// Convierte objetos de camelCase a snake_case recursivamente
+function convertKeysToSnakeCase(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => convertKeysToSnakeCase(item));
+  } else if (obj !== null && obj.constructor === Object) {
+    return Object.keys(obj).reduce((result, key) => {
+      const snakeKey = camelToSnake(key);
+      result[snakeKey] = convertKeysToSnakeCase(obj[key]);
+      return result;
+    }, {});
+  }
+  return obj;
+}
+
+// Convierte objetos de snake_case a camelCase recursivamente
+function convertKeysToCamelCase(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => convertKeysToCamelCase(item));
+  } else if (obj !== null && obj.constructor === Object) {
+    return Object.keys(obj).reduce((result, key) => {
+      const camelKey = snakeToCamel(key);
+      result[camelKey] = convertKeysToCamelCase(obj[key]);
+      // También mantener la versión snake_case para compatibilidad
+      if (key !== camelKey) {
+        result[key] = convertKeysToCamelCase(obj[key]);
+      }
+      return result;
+    }, {});
+  }
+  return obj;
+}
+
 // Convierte la selección GraphQL a string respetando la estructura anidada
 function selectionSetToString(selections) {
   if (!selections) return "";
-  
+
   return selections
-    .map(selection => {
+    .map((selection) => {
       if (selection.selectionSet) {
         return `${selection.name.value} {
           ${selectionSetToString(selection.selectionSet.selections)}
@@ -262,34 +304,110 @@ export const mlResolvers = {
     // === CLUSTERING ===
     analyzeCandidateClusters: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+
+      // Convertir argumentos de snake_case a camelCase para el servicio ML
+      let input = args.input || {};
+      const convertedInput = {};
+
+      // Mapear snake_case a camelCase
+      if (input.max_results !== undefined) {
+        convertedInput.maxResults = input.max_results;
+      }
+      if (input.maxResults !== undefined) {
+        convertedInput.maxResults = input.maxResults;
+      }
+      if (input.include_outliers !== undefined) {
+        convertedInput.includeOutliers = input.include_outliers;
+      }
+      if (input.includeOutliers !== undefined) {
+        convertedInput.includeOutliers = input.includeOutliers;
+      }
+      if (input.algorithm !== undefined) {
+        convertedInput.algorithm = input.algorithm;
+      }
+
       const query = `query analyzeCandidateClusters($input: ClusteringQueryInput) {
         analyzeCandidateClusters(input: $input) {
           ${fields}
         }
       }`;
-      const data = await forwardToML(query, args);
+
+      const data = await forwardToML(query, { input: convertedInput });
       return data.analyzeCandidateClusters;
     },
 
     findSimilarCandidates: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+
+      // Convertir argumentos de snake_case a camelCase para el servicio ML
+      let input = args.input || {};
+      const convertedInput = {};
+
+      // Mapear snake_case a camelCase
+      if (input.candidate_id !== undefined) {
+        convertedInput.candidateId = input.candidate_id;
+      }
+      if (input.candidateId !== undefined) {
+        convertedInput.candidateId = input.candidateId;
+      }
+      if (input.max_results !== undefined) {
+        convertedInput.maxSimilar = input.max_results;
+      }
+      if (input.maxSimilar !== undefined) {
+        convertedInput.maxSimilar = input.maxSimilar;
+      }
+      if (input.similarity_threshold !== undefined) {
+        convertedInput.similarityThreshold = input.similarity_threshold;
+      }
+      if (input.clustering_method !== undefined) {
+        convertedInput.algorithm = input.clustering_method;
+      }
+      if (input.algorithm !== undefined) {
+        convertedInput.algorithm = input.algorithm;
+      }
+      if (input.includeMetrics !== undefined) {
+        convertedInput.includeMetrics = input.includeMetrics;
+      }
+
       const query = `query findSimilarCandidates($input: SimilarCandidatesInput!) {
         findSimilarCandidates(input: $input) {
           ${fields}
         }
       }`;
-      const data = await forwardToML(query, args);
+      const data = await forwardToML(query, { input: convertedInput });
       return data.findSimilarCandidates;
     },
 
     getClusterProfileDetails: async (_, args, context, info) => {
       const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+
+      // Convertir argumentos de snake_case a camelCase para el servicio ML
+      let input = args.input || {};
+      const convertedInput = {};
+
+      // Mapear snake_case a camelCase
+      if (input.cluster_id !== undefined) {
+        convertedInput.clusterId = input.cluster_id;
+      }
+      if (input.clusterId !== undefined) {
+        convertedInput.clusterId = input.clusterId;
+      }
+      if (input.include_details !== undefined) {
+        convertedInput.includeDetails = input.include_details;
+      }
+      if (input.includeDetails !== undefined) {
+        convertedInput.includeDetails = input.includeDetails;
+      }
+      if (input.algorithm !== undefined) {
+        convertedInput.algorithm = input.algorithm;
+      }
+
       const query = `query getClusterProfileDetails($input: ClusterProfileInput!) {
         getClusterProfileDetails(input: $input) {
           ${fields}
         }
       }`;
-      const data = await forwardToML(query, args);
+      const data = await forwardToML(query, { input: convertedInput });
       return data.getClusterProfileDetails;
     },
   },

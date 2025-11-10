@@ -663,31 +663,30 @@ export const typeDefs = gql`
 
   # Tipos de Clustering
   type ClusterAnalysis {
-    cluster_count: Int!
-    total_candidates: Int!
-    cluster_profiles: [ClusterProfile!]!
-    clustering_metrics: ClusteringMetrics!
-    timestamp: String!
+    totalCandidates: Int!
+    clustersFound: Int!
+    outliersDetected: Int!
+    algorithmUsed: String!
+    trainingDate: String!
+    metrics: ClusteringMetrics!
+    clusterProfiles: [ClusterProfile!]!
   }
 
   type ClusterProfile {
-    cluster_id: Int!
-    cluster_label: String!
-    candidate_count: Int!
-    avg_experience: Float!
-    common_skills: [String!]!
-    salary_range: String!
-    education_distribution: [EducationDistribution!]!
-    centroid_features: [String!]
-    typical_profile: TypicalProfile
-    diversity_metrics: DiversityMetrics
-    representative_members: [ID!]
+    clusterId: Int!
+    size: Int!
+    percentage: Float!
+    description: String!
+    topCharacteristics: [String!]!
+    summary: String!
   }
 
   type ClusteringMetrics {
-    silhouette_score: Float!
-    davies_bouldin_score: Float!
-    calinski_harabasz_score: Float!
+    silhouetteScore: Float!
+    daviesBouldinScore: Float!
+    calinskiHarabaszScore: Float!
+    nClusters: Int!
+    algorithmUsed: String!
   }
 
   type EducationDistribution {
@@ -962,8 +961,10 @@ export const typeDefs = gql`
 
   input ClusteringQueryInput {
     algorithm: String
-    n_clusters: Int
-    include_metrics: Boolean
+    max_results: Int
+    maxResults: Int
+    include_outliers: Boolean
+    includeOutliers: Boolean
   }
 
   input SimilarCandidatesInput {
@@ -978,9 +979,11 @@ export const typeDefs = gql`
   }
 
   input ClusterProfileInput {
-    cluster_id: Int!
-    include_members: Boolean
-    include_diversity: Boolean
+    clusterId: Int!
+    cluster_id: Int
+    algorithm: String
+    includeDetails: Boolean
+    include_details: Boolean
   }
 
   input ModelTrainingInput {
