@@ -224,6 +224,13 @@ export const typeDefs = gql`
     interviewStats: [InterviewObjectivesKPI!]!
   }
 
+  type CandidateInterviewStats {
+    candidateName: String!
+    totalInterviews: Int!
+    averageObjectiveCoverage: Float!
+    interviews: [InterviewObjectivesKPI!]!
+  }
+
   type CompanyInterviewStats {
     empresaId: String!
     empresaNombre: String!
@@ -340,9 +347,14 @@ export const typeDefs = gql`
     evaluacionesByInterviewer(entrevistador: String!): EvaluacionesByInterviewerStats
     jobConversionRate(offerId: String!): ConversionRateKPI
     allJobsConversionRate: AllOffersConversionSummary
+    jobConversionRateByPeriod(offerId: String!, startDate: String!, endDate: String!): ConversionRateKPI
     conversionRateByCompany(empresaId: String!): CompanyConversionStats
+    allCompaniesConversionRate: [CompanyConversionStats!]!
     interviewObjectivesKPI(interviewId: String!): InterviewObjectivesKPI
     allInterviewsObjectivesKPI: AllInterviewsObjectivesSummary
+    candidateInterviewsObjectivesKPI(candidateName: String!): CandidateInterviewStats
+    interviewObjectivesByCompany(empresaId: String!): CompanyInterviewStats
+    allCompaniesInterviewObjectives: [CompanyInterviewStats!]!
 
     # Queries para service_bi (FastAPI)
     analytics: [Analytics!]!

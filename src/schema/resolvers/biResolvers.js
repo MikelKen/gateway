@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BI_URL = process.env.SERVICE_BI_URL || "http://localhost:8080";
+const BI_URL = process.env.SERVICE_BI_URL || "http://localhost:8081";
 
 // Convierte la selección GraphQL a string respetando la estructura anidada
 function selectionSetToString(selections) {
@@ -25,9 +25,19 @@ function selectionSetToString(selections) {
 async function forwardToBI(query, variables = {}) {
   try {
     console.log(`📊 Forwarding to BI: ${query.substring(0, 100)}...`);
-    const response = await axios.post(`${BI_URL}/query`, {
-      query,
-      variables,
+    const payload = { query };
+    
+    // Solo incluir variables si hay
+    if (Object.keys(variables).length > 0) {
+      payload.variables = variables;
+    }
+    
+    console.log(`📤 Payload:`, JSON.stringify(payload, null, 2));
+    
+    const response = await axios.post(`${BI_URL}/query`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
     if (response.data.errors) {
@@ -38,6 +48,10 @@ async function forwardToBI(query, variables = {}) {
     return response.data.data;
   } catch (error) {
     console.error("❌ Error forwarding to BI:", error.message);
+    if (error.response) {
+      console.error("❌ Response status:", error.response.status);
+      console.error("❌ Response data:", error.response.data);
+    }
     throw error;
   }
 }
@@ -152,6 +166,61 @@ export const biResolvers = {
       }`;
       const data = await forwardToBI(query, args);
       return data.allInterviewsObjectivesKPI;
+    },
+
+    jobConversionRateByPeriod: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query jobConversionRateByPeriod($offerId: String!, $startDate: String!, $endDate: String!) {
+        jobConversionRateByPeriod(offerId: $offerId, startDate: $startDate, endDate: $endDate) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToBI(query, args);
+      return data.jobConversionRateByPeriod;
+    },
+
+    allCompaniesConversionRate: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query allCompaniesConversionRate {
+        allCompaniesConversionRate {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToBI(query, args);
+      return data.allCompaniesConversionRate;
+    },
+
+    candidateInterviewsObjectivesKPI: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query candidateInterviewsObjectivesKPI($candidateName: String!) {
+        candidateInterviewsObjectivesKPI(candidateName: $candidateName) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToBI(query, args);
+      return data.candidateInterviewsObjectivesKPI;
+    },
+
+    interviewObjectivesByCompany: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query interviewObjectivesByCompany($empresaId: String!) {
+        interviewObjectivesByCompany(empresaId: $empresaId) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToBI(query, args);
+      return data.interviewObjectivesByCompany;
+    },
+
+    allCompaniesInterviewObjectives: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+      const query = `query allCompaniesInterviewObjectives {
+        allCompaniesInterviewObjectives {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToBI(query, args);
+      return data.allCompaniesInterviewObjectives;
     },
   },
 };
