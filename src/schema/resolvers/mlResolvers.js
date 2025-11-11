@@ -410,5 +410,41 @@ export const mlResolvers = {
       const data = await forwardToML(query, { input: convertedInput });
       return data.getClusterProfileDetails;
     },
+
+    getCandidatesInCluster: async (_, args, context, info) => {
+      const fields = selectionSetToString(info.fieldNodes[0].selectionSet.selections);
+
+      // Convertir argumentos de snake_case a camelCase para el servicio ML
+      let input = args.input || {};
+      const convertedInput = {};
+
+      // Mapear propiedades
+      if (input.cluster_id !== undefined) {
+        convertedInput.clusterId = input.cluster_id;
+      }
+      if (input.clusterId !== undefined) {
+        convertedInput.clusterId = input.clusterId;
+      }
+      if (input.algorithm !== undefined) {
+        convertedInput.algorithm = input.algorithm;
+      }
+      if (input.limit !== undefined) {
+        convertedInput.limit = input.limit;
+      }
+      if (input.include_details !== undefined) {
+        convertedInput.includeDetails = input.include_details;
+      }
+      if (input.includeDetails !== undefined) {
+        convertedInput.includeDetails = input.includeDetails;
+      }
+
+      const query = `query getCandidatesInCluster($input: GetCandidatesInClusterInput!) {
+        getCandidatesInCluster(input: $input) {
+          ${fields}
+        }
+      }`;
+      const data = await forwardToML(query, { input: convertedInput });
+      return data.getCandidatesInCluster;
+    },
   },
 };

@@ -368,6 +368,7 @@ export const typeDefs = gql`
     analyzeCandidateClusters(input: ClusteringQueryInput): ClusterAnalysis
     findSimilarCandidates(input: SimilarCandidatesInput!): SimilarCandidates
     getClusterProfileDetails(input: ClusterProfileInput!): ClusterProfile
+    getCandidatesInCluster(input: GetCandidatesInClusterInput!): CandidatesInCluster
 
     # Queries ML - Utilidades
     collectionInfo(collectionName: String!): FeatureCollectionInfo
@@ -752,6 +753,49 @@ export const typeDefs = gql`
     distance_metrics: DistanceMetrics!
   }
 
+  type SimilarCandidate {
+    candidate_id: ID!
+    candidateId: ID!
+    similarity_score: Float!
+    shared_characteristics: [String!]!
+    cluster_id: Int
+    clusterId: Int
+    clusterConfidence: Float
+    distanceToCenter: Float
+    distance_metrics: DistanceMetrics!
+  }
+
+  type CandidateInCluster {
+    candidateId: ID!
+    candidate_id: ID
+    name: String!
+    email: String!
+    yearsExperience: Int
+    years_experience: Int
+    educationArea: String
+    education_area: String
+    workArea: String
+    work_area: String
+    skills: [String!]
+    certifications: [String!]
+    englishLevel: String
+    english_level: String
+    distanceToCenter: Float
+    distance_to_center: Float
+    clusterId: Int
+    cluster_id: Int
+  }
+
+  type CandidatesInCluster {
+    clusterId: Int!
+    cluster_id: Int
+    totalCandidates: Int!
+    total_candidates: Int
+    clusterPercentage: Float!
+    cluster_percentage: Float
+    candidates: [CandidateInCluster!]!
+  }
+
   type DistanceMetrics {
     euclidean_distance: Float!
     cosine_similarity: Float!
@@ -998,6 +1042,13 @@ export const typeDefs = gql`
     algorithm: String
     includeDetails: Boolean
     include_details: Boolean
+  }
+
+  input GetCandidatesInClusterInput {
+    clusterId: Int!
+    algorithm: String
+    limit: Int
+    includeDetails: Boolean
   }
 
   input ModelTrainingInput {

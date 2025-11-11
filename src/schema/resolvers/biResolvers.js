@@ -5,9 +5,9 @@ const BI_URL = process.env.SERVICE_BI_URL || "http://localhost:8081";
 // Convierte la selección GraphQL a string respetando la estructura anidada
 function selectionSetToString(selections) {
   if (!selections) return "";
-  
+
   return selections
-    .map(selection => {
+    .map((selection) => {
       if (selection.selectionSet) {
         // Campo con sub-selecciones (nested)
         return `${selection.name.value} {
@@ -26,28 +26,46 @@ async function forwardToBI(query, variables = {}) {
   try {
     console.log(`📊 Forwarding to BI: ${query.substring(0, 100)}...`);
     const payload = { query };
-    
+
     // Solo incluir variables si hay
     if (Object.keys(variables).length > 0) {
       payload.variables = variables;
     }
-    
+
     console.log(`📤 Payload:`, JSON.stringify(payload, null, 2));
-    
+
     const response = await axios.post(`${BI_URL}/query`, payload, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
+      timeout: 30000, // ⏱️ Timeout de 30 segundos
     });
 
     if (response.data.errors) {
       console.error("❌ BI Error:", response.data.errors);
-      throw new Error(response.data.errors[0].message);
+      const errorMessage = response.data.errors[0].message;
+
+      // Detectar errores específicos
+      if (errorMessage.includes("conn busy")) {
+        console.error("⚠️  CONEXIÓN OCUPADA: El pool de conexiones del BI está saturado");
+        console.error(
+          "💡 Soluciones: 1) Reinicia el BI, 2) Verifica queries lentas en PostgreSQL, 3) Aumenta max_connections"
+        );
+      }
+
+      throw new Error(errorMessage);
     }
 
     return response.data.data;
   } catch (error) {
     console.error("❌ Error forwarding to BI:", error.message);
+
+    // Detectar timeout
+    if (error.code === "ECONNABORTED") {
+      console.error("⚠️  TIMEOUT: La solicitud al BI tardó más de 30 segundos");
+      console.error("💡 Probablemente una query lenta en PostgreSQL");
+    }
+
     if (error.response) {
       console.error("❌ Response status:", error.response.status);
       console.error("❌ Response data:", error.response.data);
